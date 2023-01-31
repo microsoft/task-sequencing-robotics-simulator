@@ -1,14 +1,48 @@
-# Project
+# Task Sequencing Robotics Simulator
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+The Task Sequencing Robotics Simulator is a Python-based simulator for (1) training robot manipulation tasks using reinforcement learning,
+and (2) connecting the trained task with other trained or programmed tasks to compose a sequenced execution.
 
-As the maintainer of this project, please make a few updates:
+The simulator is designed to work with the Bonsai Azure Service.
+The simulator is designed to work with different physics/rendering engines as well as different robot configurations.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+## Samples
+
+**Training**
+
+To run the sample code, you will need to connect the simulator to the Bonsai Azure Service
+(please copy the content of *src/samples/training/shadow_active_grasp.ink* to your Bonsai workspace).
+
+The sample code will train a grasping brain using the PyBullet physics engine and the shadowhand_lite robotics hand.
+The sample requires downloading the robot hand model from the shadow-robot/sr_common repository (melodic-devel branch).
+Please use the Dockerfile for simplified setup.
+
+```
+docker image build --tag <bonsai_workspace_name>.azurecr.io/tss:1.0 -f ./docker/Dockerfile_sample .
+docker run -e SIM_WORKSPACE=<bonsai_workspace_id> -e SIM_ACCESS_KEY=<access_key> --network host <bonsai_workspace_name>.azurecr.io/tss:1.0
+```
+
+To train using multiple simulator instances, please upload the built docker image to your Bonsai workspace.
+
+```
+az acr login -n <bonsai_workspace_name>
+docker push <bonsai_workspace_name>.azurecr.io/tss:1.0
+```
+
+**Execution**
+
+Please finish the above Training sample first (including building the docker image) and export a trained grasping brain.
+
+The sample code will simulate a sequenced execution of tasks.
+Please note that the current sample has some limitations where all task parameters must be defined a priori before execution.
+
+```
+docker run -d -p 5000:5000 <bonsai_workspace_name>.azurecr.io/<bonsai_workspace_id>/<trained_brain_name>:<tag>
+docker run -e SIM_WORKSPACE=w -e SIM_ACCESS_KEY=a -e RUNCODE=src/samples/execution/pick_place.py --network host <bonsai_workspace_name>.azurecr.io/tss:1.0
+```
+
+A video of the execution is saved under logs/ inside the docker container.
+(There are ways to run the container such as using *tail -f /dev/null* which could make accessing the logs easier.)
 
 ## Contributing
 

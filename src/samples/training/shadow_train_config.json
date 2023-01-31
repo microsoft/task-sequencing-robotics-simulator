@@ -1,0 +1,18 @@
+{
+    "general": {
+        "use_robot_state": "physics"
+    },
+    "environment_engines": {
+        "kinematics": null,
+        "physics": {
+            "engine": "PyBullet",
+            "urdf_path": "../sr_common/sr_description/robots/shadowhand_lite.urdf"
+        },
+        "scenery": null,
+        "post_process": null
+    },
+    "agent_profiles": {
+        "active_force": "samples.training.shadow_agent_profile",
+        "default": "samples.training.shadow_agent_profile"
+    }
+}

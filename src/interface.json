@@ -1,0 +1,1 @@
+{"name": "shadowsim", "timeout": 60, "description": {"config": {"category": "Struct", "fields": [{}]}, "action": {"category": "Struct", "fields": [{"name": "empty", "type": {"category": "Number"}}]}, "state": {"category": "Struct", "fields": [{"name": "empty", "type": {"category": "Array"}}]}}}

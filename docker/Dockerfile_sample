@@ -1,0 +1,39 @@
+# ROS is not essential for TSS.
+# However, the robot hand used in the sample code depends on ROS to generate the URDF file.
+
+FROM ros:noetic-ros-base
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt update && apt install -y --no-install-recommends && apt upgrade -y
+RUN apt install python3 python3-pip ssh xvfb git libxrender1 -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+# install TSS dependencies
+RUN mkdir -p /task-sequencing_robotics-simulator/src/
+ADD requirements.txt /task-sequencing_robotics-simulator/requirements.txt
+WORKDIR /task-sequencing_robotics-simulator/
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# robot hand for running samples
+WORKDIR /
+RUN git clone --single-branch --branch melodic-devel https://github.com/shadow-robot/sr_common
+RUN apt update && apt install ros-noetic-urdf ros-noetic-xacro -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /catkin_ws/src
+WORKDIR /catkin_ws/
+RUN cp -r /sr_common/sr_description /catkin_ws/src/sr_description
+RUN /bin/bash -c '. /opt/ros/noetic/setup.bash; catkin_make'
+RUN /bin/bash -c '. devel/setup.bash && xacro src/sr_description/robots/shadowhand_lite.urdf.xacro > /sr_common/sr_description/robots/shadowhand_lite.urdf'
+RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+RUN echo "source /catkin_ws/devel/setup.bash" >> ~/.bashrc
+
+# fix urdf model for PyBullet
+RUN sed -i "s@<link name=\"world\"/>@<\!--link name=\"world\"/-->@g" /sr_common/sr_description/robots/shadowhand_lite.urdf
+RUN sed -i "s@<parent link=\"world\"/>@<parent link=\"rh_arm_base\"/>@g" /sr_common/sr_description/robots/shadowhand_lite.urdf
+RUN sed -i '34 a <link name="rh_arm_base"><inertial><mass value="10.0"/><origin rpy="0 0 0" xyz="0 0 0.05"/><inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/></inertial></link>' /sr_common/sr_description/robots/shadowhand_lite.urdf
+
+# add source code last in case code is updated
+ADD src /task-sequencing_robotics-simulator/src
+WORKDIR /task-sequencing_robotics-simulator/
+
+# command to run
+ENV RUNCODE src/tss.py
+CMD python3 ${RUNCODE} --tssconfig ./src/samples/training/shadow_train_config.json
